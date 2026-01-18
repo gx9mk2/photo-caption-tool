@@ -178,6 +178,133 @@ canvas {
   width: 80px;
 }
 
+/* ============================
+   スマホ最適化（幅768px以下）
+   ============================ */
+@media (max-width: 768px) {
+
+  body {
+    padding: 8px;
+  }
+
+  h1 {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* 画像を中央に大きく表示 */
+  #previewCanvas {
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    display: block;
+  }
+
+  /* PC用パネルは非表示 */
+  .panel {
+    display: none !important;
+  }
+
+  /* プレビューだけ表示するための簡易ラッパ */
+  .preview-wrapper {
+    height: auto;
+    min-height: 50vh;
+  }
+
+  /* 下部ツールバー */
+  .mobile-toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #222;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-around;
+    border-top: 1px solid #444;
+    z-index: 1000;
+  }
+
+  .mobile-toolbar button {
+    background: none;
+    border: none;
+    color: #eee;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .mobile-toolbar button:active {
+    opacity: 0.6;
+  }
+
+  /* スライドアップパネル */
+  .mobile-panel {
+    display: none;
+    position: fixed;
+    bottom: 60px; /* ツールバーの高さ分 */
+    left: 0;
+    right: 0;
+    background: #181818;
+    padding: 16px;
+    border-top: 1px solid #333;
+    z-index: 1000;
+  }
+
+  .mobile-panel.open {
+    display: block;
+  }
+
+  .mobile-panel h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    color: #fff;
+  }
+
+  .mobile-panel input[type="range"] {
+    width: 100%;
+    margin: 8px 0 16px;
+  }
+
+  .mobile-panel label {
+    font-size: 14px;
+    color: #ccc;
+  }
+
+  .value-display {
+    font-size: 14px;
+    color: #aaa;
+    margin-top: -8px;
+    margin-bottom: 12px;
+  }
+
+  .pos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .pos-grid button {
+    padding: 12px 0;
+    font-size: 20px;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #eee;
+  }
+
+  .pos-grid button:active {
+    background: #333;
+  }
+}
+
 /* ▲ CSSここまで ▲ */
 </style>
 
@@ -197,120 +324,119 @@ canvas {
     <input id="fileInput" type="file" accept="image/jpeg,image/png" multiple>
 
     <!-- プリセット -->
-   <div class="setting-block">
-  <label>プリセット</label>
-  <div class="input-row">
-    <select id="presetSelect">
-      <option value="none" selected>選択してください</option>
-      <option value="g9m2">LUMIX G9M2 用</option>
-      <option value="v1">PowerShot V1 用</option>
-    </select>
-  </div>
-</div>
+    <div class="setting-block">
+      <label>プリセット</label>
+      <div class="input-row">
+        <select id="presetSelect">
+          <option value="none" selected>選択してください</option>
+          <option value="g9m2">LUMIX G9M2 用</option>
+          <option value="v1">PowerShot V1 用</option>
+        </select>
+      </div>
+    </div>
 
-<!-- 余白比率（上・左右） -->
-<div class="setting-block">
-  <label>余白比率（上・左右）</label>
-  <div class="input-row">
-    <input id="marginRatioSlider" type="range" min="0" max="0.20" step="0.01" value="0.03">
-    <input id="marginRatioInput" type="number" min="0" max="1" step="0.01" value="0.03">
-  </div>
-</div>
+    <!-- 余白比率（上・左右） -->
+    <div class="setting-block">
+      <label>余白比率（上・左右）</label>
+      <div class="input-row">
+        <input id="marginRatioSlider" type="range" min="0" max="0.20" step="0.01" value="0.03">
+        <input id="marginRatioInput" type="number" min="0" max="1" step="0.01" value="0.03">
+      </div>
+    </div>
 
-<!-- フォントサイズ -->
-<div class="setting-block">
-  <label>フォントサイズ</label>
-  <div class="input-row">
-    <input id="fontSizeSlider" type="range" min="8" max="300" step="1" value="118">
-    <input id="fontSizeInput" type="number" min="8" max="300" step="1" value="118">
-  </div>
-</div>
+    <!-- フォントサイズ -->
+    <div class="setting-block">
+      <label>フォントサイズ</label>
+      <div class="input-row">
+        <input id="fontSizeSlider" type="range" min="8" max="300" step="1" value="118">
+        <input id="fontSizeInput" type="number" min="8" max="300" step="1" value="118">
+      </div>
+    </div>
 
-<!-- キャプション位置オフセット（Y方向） -->
-<div class="setting-block">
-  <label>キャプション位置オフセット（Y方向・マイナス可）</label>
-  <div class="input-row">
-    <input id="offsetYSlider" type="range" min="-1000" max="1000" step="10" value="0">
-    <input id="offsetYInput" type="number" value="0" min="-1000" max="1000" step="10">
-  </div>
-</div>
+    <!-- キャプション位置オフセット（Y方向） -->
+    <div class="setting-block">
+      <label>キャプション位置オフセット（Y方向・マイナス可）</label>
+      <div class="input-row">
+        <input id="offsetYSlider" type="range" min="-1000" max="1000" step="10" value="0">
+        <input id="offsetYInput" type="number" value="0" min="-1000" max="1000" step="10">
+      </div>
+    </div>
 
-<!-- 行間 -->
-<div class="setting-block">
-  <label>行間（line gap）</label>
-  <div class="input-row">
-    <input id="lineGapSlider" type="range" min="0.8" max="2.0" step="0.05" value="1.2">
-    <input id="lineGapInput" type="number" min="0.5" max="3.0" step="0.05" value="1.2">
-  </div>
-</div>
-
+    <!-- 行間 -->
+    <div class="setting-block">
+      <label>行間（line gap）</label>
+      <div class="input-row">
+        <input id="lineGapSlider" type="range" min="0.8" max="2.0" step="0.05" value="1.2">
+        <input id="lineGapInput" type="number" min="0.5" max="3.0" step="0.05" value="1.2">
+      </div>
+    </div>
 
     <!-- フォント選択 -->
     <div class="setting-block">
       <label>フォント</label>
       <select id="fontFamilySelect">
         <option value="Zen Antique" selected>Zen Antique（デフォルト）</option>
-  <option value="Noto Sans JP">Noto Sans JP</option>
-  <option value="BIZ UDMincho">BIZ UDMincho</option>
-  <option value="BIZ UDPMincho">BIZ UDPMincho</option>
-  <option value="Shippori Mincho B1">Shippori Mincho B1</option>
-  <option value="Noto Serif JP">Noto Serif JP</option>
-  <option value="Shippori Mincho">Shippori Mincho</option>
-  <option value="Yuji Syuku">Yuji Syuku</option>
-  <option value="Zen Old Mincho">Zen Old Mincho</option>
-  <option value="Zen Antique Soft">Zen Antique Soft</option>
-  <option value="Sawarabi Mincho">Sawarabi Mincho</option>
-  <option value="Yu Gothic">Yu Gothic</option>
-  <option value="游ゴシック">游ゴシック</option>
-  <option value="Meiryo">メイリオ</option>
-  <option value="Hiragino Sans">Hiragino Sans</option>
-  <option value="Roboto">Roboto</option>
-</select>
+        <option value="Noto Sans JP">Noto Sans JP</option>
+        <option value="BIZ UDMincho">BIZ UDMincho</option>
+        <option value="BIZ UDPMincho">BIZ UDPMincho</option>
+        <option value="Shippori Mincho B1">Shippori Mincho B1</option>
+        <option value="Noto Serif JP">Noto Serif JP</option>
+        <option value="Shippori Mincho">Shippori Mincho</option>
+        <option value="Yuji Syuku">Yuji Syuku</option>
+        <option value="Zen Old Mincho">Zen Old Mincho</option>
+        <option value="Zen Antique Soft">Zen Antique Soft</option>
+        <option value="Sawarabi Mincho">Sawarabi Mincho</option>
+        <option value="Yu Gothic">Yu Gothic</option>
+        <option value="游ゴシック">游ゴシック</option>
+        <option value="Meiryo">メイリオ</option>
+        <option value="Hiragino Sans">Hiragino Sans</option>
+        <option value="Roboto">Roboto</option>
+      </select>
     </div>
 
-<!-- 文字色 -->
-<div class="setting-block">
-  <label>文字色（グレー系）</label>
-  <input id="fontColorInput" type="color" value="#9e9e9e">
-</div>
+    <!-- 文字色 -->
+    <div class="setting-block">
+      <label>文字色（グレー系）</label>
+      <input id="fontColorInput" type="color" value="#9e9e9e">
+    </div>
 
-<!-- 下余白の追加量 -->
-<div class="setting-block">
-  <label>下余白の追加量（px）</label>
-  <input id="extraBottomSlider" type="range" min="0" max="2000" step="10" value="200">
-  <input id="extraBottomInput" type="number" min="0" max="2000" step="10" value="200">
-</div>
+    <!-- 下余白の追加量 -->
+    <div class="setting-block">
+      <label>下余白の追加量（px）</label>
+      <input id="extraBottomSlider" type="range" min="0" max="2000" step="10" value="200">
+      <input id="extraBottomInput" type="number" min="0" max="2000" step="10" value="200">
+    </div>
 
-<!-- ★ 自由キャプション（複数行可） -->
-<div class="setting-block">
-  <label>自由キャプション（複数行可）</label>
-  <textarea id="freeCaptionInput" rows="3" style="width:100%;"></textarea>
-</div>
+    <!-- ★ 自由キャプション（複数行可） -->
+    <div class="setting-block">
+      <label>自由キャプション（複数行可）</label>
+      <textarea id="freeCaptionInput" rows="3" style="width:100%;"></textarea>
+    </div>
 
-<!-- ★ 自由キャプションのスタイル（斜体・ウェイト） -->
-<div class="setting-block">
-  <label>自由キャプションのスタイル</label>
-  <div class="input-row">
-    <label style="display:flex; align-items:center; gap:4px;">
-      <input type="checkbox" id="freeCaptionItalic"> 斜体
-    </label>
+    <!-- ★ 自由キャプションのスタイル（斜体・ウェイト） -->
+    <div class="setting-block">
+      <label>自由キャプションのスタイル</label>
+      <div class="input-row">
+        <label style="display:flex; align-items:center; gap:4px;">
+          <input type="checkbox" id="freeCaptionItalic"> 斜体
+        </label>
 
-    <select id="freeCaptionWeight">
-      <option value="300">細め（300）</option>
-      <option value="400" selected>標準（400）</option>
-      <option value="500">中間（500）</option>
-      <option value="700">太め（700）</option>
-      <option value="900">極太（900）</option>
-    </select>
-  </div>
-</div>
+        <select id="freeCaptionWeight">
+          <option value="300">細め（300）</option>
+          <option value="400" selected>標準（400）</option>
+          <option value="500">中間（500）</option>
+          <option value="700">太め（700）</option>
+          <option value="900">極太（900）</option>
+        </select>
+      </div>
+    </div>
 
-<!-- ★ 自由キャプションと機種名の間隔（追加） -->
-<div class="setting-block">
-  <label>キャプションと機種名の間隔（px）</label>
-  <input id="captionGapSlider" type="range" min="0" max="300" step="5" value="40">
-  <input id="captionGapInput" type="number" min="0" max="300" step="5" value="40">
-</div>
+    <!-- ★ 自由キャプションと機種名の間隔（追加） -->
+    <div class="setting-block">
+      <label>キャプションと機種名の間隔（px）</label>
+      <input id="captionGapSlider" type="range" min="0" max="300" step="5" value="40">
+      <input id="captionGapInput" type="number" min="0" max="300" step="5" value="40">
+    </div>
 
     <!-- キャプション方向 -->
     <div class="setting-block">
@@ -356,6 +482,65 @@ canvas {
 
 </div>
 
+<!-- ▼ スマホ用：下部ツールバー -->
+<div class="mobile-toolbar">
+  <button data-panel="font">FONT</button>
+  <button data-panel="size">SIZE</button>
+  <button data-panel="pos">POS</button>
+  <button data-panel="margin">MARGIN</button>
+</div>
+
+<!-- ▼ スマホ用：スライドアップパネル群 -->
+<div id="panel-font" class="mobile-panel">
+  <h3>Font</h3>
+  <select id="mobileFontFamilySelect">
+    <option value="Zen Antique">Zen Antique</option>
+    <option value="Noto Sans JP">Noto Sans JP</option>
+    <option value="BIZ UDMincho">BIZ UDMincho</option>
+    <option value="BIZ UDPMincho">BIZ UDPMincho</option>
+    <option value="Shippori Mincho B1">Shippori Mincho B1</option>
+    <option value="Noto Serif JP">Noto Serif JP</option>
+    <option value="Shippori Mincho">Shippori Mincho</option>
+    <option value="Yuji Syuku">Yuji Syuku</option>
+    <option value="Zen Old Mincho">Zen Old Mincho</option>
+    <option value="Zen Antique Soft">Zen Antique Soft</option>
+    <option value="Sawarabi Mincho">Sawarabi Mincho</option>
+    <option value="Yu Gothic">Yu Gothic</option>
+    <option value="游ゴシック">游ゴシック</option>
+    <option value="Meiryo">メイリオ</option>
+    <option value="Hiragino Sans">Hiragino Sans</option>
+    <option value="Roboto">Roboto</option>
+  </select>
+</div>
+
+<div id="panel-size" class="mobile-panel">
+  <h3>Size</h3>
+  <input type="range" id="mobileFontSizeSlider" min="8" max="300" step="1" value="118">
+  <div class="value-display" id="mobileFontSizeValue">118px</div>
+</div>
+
+<div id="panel-pos" class="mobile-panel">
+  <h3>Position (Y offset)</h3>
+  <input type="range" id="mobileOffsetYSlider" min="-1000" max="1000" step="10" value="0">
+  <div class="value-display" id="mobileOffsetYValue">0</div>
+</div>
+
+<div id="panel-margin" class="mobile-panel">
+  <h3>Margin</h3>
+
+  <label>余白比率（上・左右）</label>
+  <input type="range" id="mobileMarginRatioSlider" min="0" max="0.20" step="0.01" value="0.03">
+  <div class="value-display" id="mobileMarginRatioValue">0.03</div>
+
+  <label>下余白の追加量（px）</label>
+  <input type="range" id="mobileExtraBottomSlider" min="0" max="2000" step="10" value="200">
+  <div class="value-display" id="mobileExtraBottomValue">200px</div>
+
+  <label>キャプションと機種名の間隔（px）</label>
+  <input type="range" id="mobileCaptionGapSlider" min="0" max="300" step="5" value="40">
+  <div class="value-display" id="mobileCaptionGapValue">40px</div>
+</div>
+
 <script>
 /* ==========================
    グローバル状態
@@ -396,7 +581,6 @@ const state = {
   // ★ 自由キャプションのスタイル（追加）
   freeCaptionItalic: false,
   freeCaptionWeight: 400,
-
 };
 
 const canvas = document.getElementById("previewCanvas");
@@ -431,7 +615,6 @@ const captionGapSlider = document.getElementById("captionGapSlider");
 const captionGapInput = document.getElementById("captionGapInput");
 const freeCaptionItalic = document.getElementById("freeCaptionItalic");
 const freeCaptionWeight = document.getElementById("freeCaptionWeight");
-
 
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
@@ -748,49 +931,49 @@ function drawCurrent() {
 
   const centerX = canvas.width / 2;
 
-// ★ 最初の描画でも中央揃え＆色を適用
-ctx.textAlign = "center";
-ctx.textBaseline = "alphabetic";
-ctx.fillStyle = state.fontColor;
-
-/* ==========================
-     ★ 自由キャプション（複数行）
-  =========================== */
-if (state.captionText.trim() !== "") {
-  const freeLines = state.captionText.split(/\r?\n/);
-
-  // ▼ 追加：斜体・ウェイトの取得
-  const italic = state.freeCaptionItalic ? "italic " : "";
-  const weight = state.freeCaptionWeight || 400;
-
-  // ▼ 完成版フォント指定
-  ctx.font = `${italic}${weight} ${state.fontSize}px "${state.fontFamily}", sans-serif`;
-  ctx.fillStyle = state.fontColor;
+  // ★ 最初の描画でも中央揃え＆色を適用
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = state.fontColor;
 
-  // ▼ 行数ぶん上にずらす
-  baseY -= (freeLines.length * state.fontSize * state.lineGap);
+  /* ==========================
+       ★ 自由キャプション（複数行）
+    =========================== */
+  if (state.captionText.trim() !== "") {
+    const freeLines = state.captionText.split(/\r?\n/);
 
-  for (const line of freeLines) {
-    ctx.fillText(line, centerX, baseY);
-    baseY += state.fontSize * state.lineGap;
+    // ▼ 追加：斜体・ウェイトの取得
+    const italic = state.freeCaptionItalic ? "italic " : "";
+    const weight = state.freeCaptionWeight || 400;
+
+    // ▼ 完成版フォント指定
+    ctx.font = `${italic}${weight} ${state.fontSize}px "${state.fontFamily}", sans-serif`;
+    ctx.fillStyle = state.fontColor;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+
+    // ▼ 行数ぶん上にずらす
+    baseY -= (freeLines.length * state.fontSize * state.lineGap);
+
+    for (const line of freeLines) {
+      ctx.fillText(line, centerX, baseY);
+      baseY += state.fontSize * state.lineGap;
+    }
+
+    baseY += state.captionGap;
   }
 
-  baseY += state.captionGap;
-}
+  /* ==========================
+       既存の line1（太字）
+    =========================== */
+  ctx.font = `700 ${state.fontSize}px "${state.fontFamily}", sans-serif`;
+  ctx.fillText(line1, centerX, baseY - state.fontSize * state.lineGap);
 
-/* ==========================
-     既存の line1（太字）
-  =========================== */
-ctx.font = `700 ${state.fontSize}px "${state.fontFamily}", sans-serif`;
-ctx.fillText(line1, centerX, baseY - state.fontSize * state.lineGap);
-
-/* ==========================
-     既存の line2（通常）
-  =========================== */
-ctx.font = `400 ${state.fontSize}px "${state.fontFamily}", sans-serif`;
-ctx.fillText(line2, centerX, baseY);
+  /* ==========================
+       既存の line2（通常）
+    =========================== */
+  ctx.font = `400 ${state.fontSize}px "${state.fontFamily}", sans-serif`;
+  ctx.fillText(line2, centerX, baseY);
 }
 
 /* ==========================
@@ -936,12 +1119,14 @@ presetSelect.onchange = async () => {
 marginRatioSlider.oninput = () => {
   state.marginRatio = Number(marginRatioSlider.value);
   marginRatioInput.value = state.marginRatio;
+  syncMobileFromState();
   drawCurrent();
 };
 
 marginRatioInput.oninput = () => {
   state.marginRatio = Number(marginRatioInput.value);
   marginRatioSlider.value = state.marginRatio;
+  syncMobileFromState();
   drawCurrent();
 };
 
@@ -960,12 +1145,14 @@ lineGapInput.oninput = () => {
 fontSizeSlider.oninput = () => {
   state.fontSize = Number(fontSizeSlider.value);
   fontSizeInput.value = state.fontSize;
+  syncMobileFromState();
   drawCurrent();
 };
 
 fontSizeInput.oninput = e => {
   state.fontSize = Number(e.target.value);
   fontSizeSlider.value = state.fontSize;
+  syncMobileFromState();
   drawCurrent();
 };
 
@@ -978,9 +1165,9 @@ fontFamilySelect.onchange = async e => {
   const f = e.target.value;
   state.fontFamily = f;
 
-  // ★ フォントロードを待つ（これが重要）
   await document.fonts.load(`${state.fontSize}px "${f}"`);
 
+  syncMobileFromState();
   drawCurrent();
 };
 
@@ -1002,31 +1189,35 @@ fontFamilySelect.addEventListener("wheel", async (e) => {
 
   await document.fonts.load(`${state.fontSize}px "${state.fontFamily}"`);
 
+  syncMobileFromState();
   drawCurrent();
 });
-
 
 offsetYSlider.oninput = () => {
   state.offsetY = Number(offsetYSlider.value);
   offsetYInput.value = state.offsetY;
+  syncMobileFromState();
   drawCurrent();
 };
 
 offsetYInput.oninput = e => {
   state.offsetY = Number(e.target.value);
   offsetYSlider.value = state.offsetY;
+  syncMobileFromState();
   drawCurrent();
 };
 
 extraBottomSlider.oninput = () => {
   state.extraBottomMargin = Number(extraBottomSlider.value);
   extraBottomInput.value = state.extraBottomMargin;
+  syncMobileFromState();
   drawCurrent();
 };
 
 extraBottomInput.oninput = () => {
   state.extraBottomMargin = Number(extraBottomInput.value);
   extraBottomSlider.value = state.extraBottomMargin;
+  syncMobileFromState();
   drawCurrent();
 };
 
@@ -1045,12 +1236,14 @@ freeCaptionInput.oninput = e => {
 captionGapSlider.oninput = () => {
   state.captionGap = Number(captionGapSlider.value);
   captionGapInput.value = state.captionGap;
+  syncMobileFromState();
   drawCurrent();
 };
 
 captionGapInput.oninput = () => {
   state.captionGap = Number(captionGapInput.value);
   captionGapSlider.value = state.captionGap;
+  syncMobileFromState();
   drawCurrent();
 };
 
@@ -1065,7 +1258,6 @@ freeCaptionWeight.onchange = e => {
   state.freeCaptionWeight = Number(e.target.value);
   drawCurrent();
 };
-
 
 /* ==========================
    書き出しフォルダ選択
@@ -1142,6 +1334,97 @@ fileInput.onchange = e => {
   fileInput.value = "";
 };
 
+/* ==========================
+   スマホ用 UI 要素
+========================== */
+const mobileToolbarButtons = document.querySelectorAll(".mobile-toolbar button");
+const mobileFontFamilySelect = document.getElementById("mobileFontFamilySelect");
+const mobileFontSizeSlider = document.getElementById("mobileFontSizeSlider");
+const mobileFontSizeValue = document.getElementById("mobileFontSizeValue");
+const mobileOffsetYSlider = document.getElementById("mobileOffsetYSlider");
+const mobileOffsetYValue = document.getElementById("mobileOffsetYValue");
+const mobileMarginRatioSlider = document.getElementById("mobileMarginRatioSlider");
+const mobileMarginRatioValue = document.getElementById("mobileMarginRatioValue");
+const mobileExtraBottomSlider = document.getElementById("mobileExtraBottomSlider");
+const mobileExtraBottomValue = document.getElementById("mobileExtraBottomValue");
+const mobileCaptionGapSlider = document.getElementById("mobileCaptionGapSlider");
+const mobileCaptionGapValue = document.getElementById("mobileCaptionGapValue");
+
+/* パネル開閉 */
+mobileToolbarButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.panel;
+    document.querySelectorAll(".mobile-panel").forEach(p => p.classList.remove("open"));
+    const panel = document.getElementById(`panel-${target}`);
+    if (panel) panel.classList.add("open");
+  });
+});
+
+/* スマホ → state 反映 */
+mobileFontFamilySelect.addEventListener("change", async () => {
+  state.fontFamily = mobileFontFamilySelect.value;
+  fontFamilySelect.value = state.fontFamily;
+  await document.fonts.load(`${state.fontSize}px "${state.fontFamily}"`);
+  drawCurrent();
+});
+
+mobileFontSizeSlider.addEventListener("input", () => {
+  state.fontSize = Number(mobileFontSizeSlider.value);
+  mobileFontSizeValue.textContent = `${state.fontSize}px`;
+  fontSizeSlider.value = state.fontSize;
+  fontSizeInput.value = state.fontSize;
+  drawCurrent();
+});
+
+mobileOffsetYSlider.addEventListener("input", () => {
+  state.offsetY = Number(mobileOffsetYSlider.value);
+  mobileOffsetYValue.textContent = state.offsetY;
+  offsetYSlider.value = state.offsetY;
+  offsetYInput.value = state.offsetY;
+  drawCurrent();
+});
+
+mobileMarginRatioSlider.addEventListener("input", () => {
+  state.marginRatio = Number(mobileMarginRatioSlider.value);
+  mobileMarginRatioValue.textContent = state.marginRatio.toFixed(2);
+  marginRatioSlider.value = state.marginRatio;
+  marginRatioInput.value = state.marginRatio;
+  drawCurrent();
+});
+
+mobileExtraBottomSlider.addEventListener("input", () => {
+  state.extraBottomMargin = Number(mobileExtraBottomSlider.value);
+  mobileExtraBottomValue.textContent = `${state.extraBottomMargin}px`;
+  extraBottomSlider.value = state.extraBottomMargin;
+  extraBottomInput.value = state.extraBottomMargin;
+  drawCurrent();
+});
+
+mobileCaptionGapSlider.addEventListener("input", () => {
+  state.captionGap = Number(mobileCaptionGapSlider.value);
+  mobileCaptionGapValue.textContent = `${state.captionGap}px`;
+  captionGapSlider.value = state.captionGap;
+  captionGapInput.value = state.captionGap;
+  drawCurrent();
+});
+
+/* state → スマホUI 反映 */
+function syncMobileFromState() {
+  mobileFontFamilySelect.value = state.fontFamily;
+  mobileFontSizeSlider.value = state.fontSize;
+  mobileFontSizeValue.textContent = `${state.fontSize}px`;
+  mobileOffsetYSlider.value = state.offsetY;
+  mobileOffsetYValue.textContent = state.offsetY;
+  mobileMarginRatioSlider.value = state.marginRatio;
+  mobileMarginRatioValue.textContent = state.marginRatio.toFixed(2);
+  mobileExtraBottomSlider.value = state.extraBottomMargin;
+  mobileExtraBottomValue.textContent = `${state.extraBottomMargin}px`;
+  mobileCaptionGapSlider.value = state.captionGap;
+  mobileCaptionGapValue.textContent = `${state.captionGap}px`;
+}
+
+/* 初期状態 */
+syncMobileFromState();
 setStatus("画像を読み込んでください");
 </script>
 </body>
