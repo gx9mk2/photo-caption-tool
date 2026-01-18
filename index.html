@@ -120,35 +120,37 @@ body {
 }
 
 /* ---------------------------------------
-   スライドアップパネル
+   スライドアップパネル（統合版）
 --------------------------------------- */
 #panel {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: -300px; /* 初期は隠す */
-  height: 300px;
+  bottom: -35vh;        /* 初期は隠す */
+  height: 35vh;         /* 画面の35%で安定 */
   background: #fff;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-  padding: 16px;
+  padding: 24px 16px 16px; /* タイトルと内容の余白 */
   transition: bottom 0.25s ease;
+  z-index: 900;         /* ← ツールバーより下に */
 }
 
 #panel.open {
-  bottom: 58px; /* ツールバーの上に表示 */
+  bottom: 58px;         /* ツールバーの上に表示 */
 }
 
 .panel-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;  /* タイトルと項目の間隔 */
 }
 
 .panel-content {
   font-size: 14px;
 }
+
 </style>
 </head>
 
