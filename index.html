@@ -581,7 +581,7 @@ function parseTiff(view, offset) {
           exif.ExposureTime = getValue(e);
           break;
         case 0x829D:
-          exif.FFNumberRaw = getValue(e);
+          exif.FNumberRaw = getValue(e);
           break;
         case 0x8827:
           exif.ISO = getValue(e);
