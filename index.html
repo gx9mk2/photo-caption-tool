@@ -21,7 +21,14 @@ body {
   -webkit-user-select: none;
   user-select: none;
 }
+/* ---------------------------------------
+   スライドアップパネル（高さ調整）
+--------------------------------------- */
+#panel {
+  height: 45vh; /* ← 画面の45%にする */
+}
 
+   
 /* ---------------------------------------
    写真選択ボタン
 --------------------------------------- */
@@ -184,20 +191,40 @@ let lastTouchY = 0;
 let isDragging = false;
 
 /* ---------------------------------------
-   画像読み込み
+   画像読み込み（スマホ画面に自動フィット）
 --------------------------------------- */
 function loadImageToCanvas(file) {
   const reader = new FileReader();
   reader.onload = () => {
     img = new Image();
     img.onload = () => {
+
       resetTransform();
+
+      // ★ スマホ画面に合わせて初期スケールを自動調整
+      const areaW = previewArea.clientWidth;
+      const areaH = previewArea.clientHeight;
+
+      const scaleX = areaW / img.width;
+      const scaleY = areaH / img.height;
+
+      // 画面に収まる最大スケール
+      scale = Math.min(scaleX, scaleY);
+
+      // 1倍より大きくしない（スマホでは自然）
+      scale = Math.min(scale, 1);
+
+      // 中央に配置
+      offsetX = 0;
+      offsetY = 0;
+
       draw();
     };
     img.src = reader.result;
   };
   reader.readAsDataURL(file);
 }
+
 
 /* ---------------------------------------
    描画処理
