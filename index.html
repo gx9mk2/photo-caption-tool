@@ -171,23 +171,22 @@ body {
 
 <script>
 /* ---------------------------------------
-   ピンチズーム & ドラッグ（画像だけ拡大）
+   画像・キャンバス基本
 --------------------------------------- */
 const canvas = document.getElementById("previewCanvas");
 const ctx = canvas.getContext("2d");
+const previewArea = document.getElementById("previewArea");
 
-let img = null;              // 読み込んだ画像
-let scale = 1;               // 現在の拡大率
-let minScale = 0.5;
-let maxScale = 4.0;
+let img = null;
 
-let offsetX = 0;             // ドラッグ移動量
+// 拡大縮小はしない → scale は固定
+let scale = 1;
+
+// ドラッグ用
+let offsetX = 0;
 let offsetY = 0;
-
-let lastTouchDistance = 0;   // ピンチ距離
 let lastTouchX = 0;
 let lastTouchY = 0;
-
 let isDragging = false;
 
 /* ---------------------------------------
@@ -199,20 +198,14 @@ function loadImageToCanvas(file) {
     img = new Image();
     img.onload = () => {
 
-      resetTransform();
+      // キャンバスサイズを画面に合わせる
+      canvas.width = previewArea.clientWidth;
+      canvas.height = previewArea.clientHeight;
 
-      // ★ スマホ画面に合わせて初期スケールを自動調整
-      const areaW = previewArea.clientWidth;
-      const areaH = previewArea.clientHeight;
-
-      const scaleX = areaW / img.width;
-      const scaleY = areaH / img.height;
-
-      // 画面に収まる最大スケール
+      // 初期スケール（画面にフィット）
+      const scaleX = canvas.width / img.width;
+      const scaleY = canvas.height / img.height;
       scale = Math.min(scaleX, scaleY);
-
-      // 1倍より大きくしない（スマホでは自然）
-      scale = Math.min(scale, 1);
 
       // 中央に配置
       offsetX = 0;
@@ -225,9 +218,8 @@ function loadImageToCanvas(file) {
   reader.readAsDataURL(file);
 }
 
-
 /* ---------------------------------------
-   描画処理
+   描画処理（固定スケール + ドラッグのみ）
 --------------------------------------- */
 function draw() {
   if (!img) return;
@@ -245,90 +237,39 @@ function draw() {
 }
 
 /* ---------------------------------------
-   ピンチ距離計算
---------------------------------------- */
-function getDistance(touches) {
-  const dx = touches[0].clientX - touches[1].clientX;
-  const dy = touches[0].clientY - touches[1].clientY;
-  return Math.sqrt(dx * dx + dy * dy);
-}
-
-/* ---------------------------------------
-   リセット（ダブルタップ）
---------------------------------------- */
-function resetTransform() {
-  scale = 1;
-  offsetX = 0;
-  offsetY = 0;
-}
-
-/* ---------------------------------------
-   タッチイベント
+   ドラッグ操作（1本指のみ）
 --------------------------------------- */
 canvas.addEventListener("touchstart", (e) => {
   if (e.touches.length === 1) {
-    // ドラッグ開始
     isDragging = true;
     lastTouchX = e.touches[0].clientX;
     lastTouchY = e.touches[0].clientY;
-  } else if (e.touches.length === 2) {
-    // ピンチ開始
-    lastTouchDistance = getDistance(e.touches);
   }
 });
 
 canvas.addEventListener("touchmove", (e) => {
+  if (!isDragging || !img) return;
+
   e.preventDefault();
 
-  if (!img) return;
+  const x = e.touches[0].clientX;
+  const y = e.touches[0].clientY;
 
-  if (e.touches.length === 1 && isDragging) {
-    // ドラッグ
-    const x = e.touches[0].clientX;
-    const y = e.touches[0].clientY;
+  offsetX += x - lastTouchX;
+  offsetY += y - lastTouchY;
 
-    offsetX += x - lastTouchX;
-    offsetY += y - lastTouchY;
+  lastTouchX = x;
+  lastTouchY = y;
 
-    lastTouchX = x;
-    lastTouchY = y;
-
-    draw();
-  }
-
-  if (e.touches.length === 2) {
-    // ピンチズーム
-    const newDist = getDistance(e.touches);
-    const delta = newDist - lastTouchDistance;
-
-    scale += delta * 0.005;
-    scale = Math.max(minScale, Math.min(maxScale, scale));
-
-    lastTouchDistance = newDist;
-
-    draw();
-  }
+  draw();
 });
 
-canvas.addEventListener("touchend", (e) => {
+canvas.addEventListener("touchend", () => {
   isDragging = false;
 });
 
 /* ---------------------------------------
-   ダブルタップでリセット
---------------------------------------- */
-let lastTap = 0;
-canvas.addEventListener("touchend", () => {
-  const now = Date.now();
-  if (now - lastTap < 300) {
-    resetTransform();
-    draw();
-  }
-  lastTap = now;
-});
-
-  /* ---------------------------------------
-   EXIF 読み込み（必要最小限）
+   EXIF 読み込み（軽量版）
 --------------------------------------- */
 async function readExif(file) {
   return new Promise((resolve) => {
@@ -336,20 +277,14 @@ async function readExif(file) {
     reader.onload = function (e) {
       try {
         const view = new DataView(e.target.result);
-
-        // JPEG 以外は無視
         if (view.getUint16(0) !== 0xFFD8) return resolve({});
-
         let offset = 2;
         while (offset < view.byteLength) {
           const marker = view.getUint16(offset);
           offset += 2;
-
           if (marker === 0xFFE1) {
             const length = view.getUint16(offset);
             offset += 2;
-
-            // "Exif" チェック
             if (view.getUint32(offset) === 0x45786966) {
               return resolve(parseExifBlock(view, offset + 6));
             }
@@ -357,9 +292,7 @@ async function readExif(file) {
             offset += view.getUint16(offset);
           }
         }
-      } catch (err) {
-        console.log("EXIF error:", err);
-      }
+      } catch (err) {}
       resolve({});
     };
     reader.readAsArrayBuffer(file);
@@ -369,7 +302,6 @@ async function readExif(file) {
 function parseExifBlock(view, start) {
   const little = view.getUint16(start) === 0x4949;
   const offset = view.getUint32(start + 4, little);
-
   const exif = {};
 
   function getValue(entryOffset, type, count, valueOffset) {
@@ -407,7 +339,7 @@ function parseExifBlock(view, start) {
   return exif;
 }
 
-  /* ---------------------------------------
+/* ---------------------------------------
    キャプション生成
 --------------------------------------- */
 function buildCaption(exif, freeText) {
@@ -430,7 +362,7 @@ function buildCaption(exif, freeText) {
   return { line1, line2, freeText };
 }
 
-  /* ---------------------------------------
+/* ---------------------------------------
    完成画像の生成（白余白 + キャプション）
 --------------------------------------- */
 async function renderFinalImage() {
@@ -442,21 +374,17 @@ async function renderFinalImage() {
 
   const caption = buildCaption(currentExif, currentFreeText);
 
-  // キャンバスサイズ（写真 + 余白）
   const finalCanvas = document.createElement("canvas");
   const fctx = finalCanvas.getContext("2d");
 
   finalCanvas.width = img.width + margin * 2;
   finalCanvas.height = img.height + margin + extraBottom;
 
-  // 背景（白）
   fctx.fillStyle = "#fff";
   fctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
-  // 写真
   fctx.drawImage(img, margin, margin);
 
-  // キャプション描画
   fctx.textAlign = "center";
   fctx.fillStyle = currentFontColor;
   fctx.font = `700 ${fontSize}px "${currentFontFamily}"`;
@@ -464,10 +392,9 @@ async function renderFinalImage() {
   const centerX = finalCanvas.width / 2;
   let y = img.height + margin + 40;
 
-  // 自由キャプション
   if (caption.freeText.trim() !== "") {
     const lines = caption.freeText.split(/\r?\n/);
-    fctx.font = `${currentFreeItalic ? "italic " : ""}${currentFreeWeight} ${fontSize}px "${currentFontFamily}"`;
+    fctx.font = `${currentFreeWeight} ${fontSize}px "${currentFontFamily}"`;
 
     for (const line of lines) {
       fctx.fillText(line, centerX, y);
@@ -476,20 +403,33 @@ async function renderFinalImage() {
     y += currentCaptionGap;
   }
 
-  // line1
   fctx.font = `700 ${fontSize}px "${currentFontFamily}"`;
   fctx.fillText(caption.line1, centerX, y);
   y += fontSize * currentLineGap;
 
-  // line2
   fctx.font = `400 ${fontSize}px "${currentFontFamily}"`;
   fctx.fillText(caption.line2, centerX, y);
 
   return finalCanvas;
 }
 
-  /* ---------------------------------------
-   設定値（state）
+/* ---------------------------------------
+   書き出し
+--------------------------------------- */
+document.getElementById("exportBtn").onclick = async () => {
+  const finalCanvas = await renderFinalImage();
+  if (!finalCanvas) return;
+
+  finalCanvas.toBlob((blob) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "captioned.jpg";
+    a.click();
+  }, "image/jpeg", 0.95);
+};
+
+/* ---------------------------------------
+   UIパネル（FONT / SIZE / POS / MARGIN / COLOR / TEXT）
 --------------------------------------- */
 let currentFontFamily = "Zen Antique";
 let currentFontSize = 48;
@@ -503,31 +443,10 @@ let currentLineGap = 1.4;
 let currentCaptionGap = 40;
 
 let currentFreeText = "";
-let currentFreeItalic = false;
 let currentFreeWeight = 400;
 
 let currentExif = {};
 
-  /* ---------------------------------------
-   写真選択
---------------------------------------- */
-document.getElementById("selectPhotoBtn").onclick = () => {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/jpeg,image/png";
-  input.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    currentExif = await readExif(file);
-    loadImageToCanvas(file);
-  };
-  input.click();
-};
-
-/* ---------------------------------------
-   パネル開閉
---------------------------------------- */
 const toolbarItems = document.querySelectorAll(".toolbar-item");
 const panel = document.getElementById("panel");
 const panelTitle = document.getElementById("panelTitle");
@@ -537,9 +456,7 @@ toolbarItems.forEach(item => {
   item.addEventListener("click", () => {
     toolbarItems.forEach(i => i.classList.remove("active"));
     item.classList.add("active");
-
-    const type = item.dataset.panel;
-    openPanel(type);
+    openPanel(item.dataset.panel);
   });
 });
 
@@ -554,7 +471,6 @@ function openPanel(type) {
   if (type === "text") showTextPanel();
 }
 
-/* 外側タップで閉じる */
 document.body.addEventListener("click", (e) => {
   if (!panel.contains(e.target) && !e.target.classList.contains("toolbar-item")) {
     panel.classList.remove("open");
@@ -562,6 +478,7 @@ document.body.addEventListener("click", (e) => {
   }
 });
 
+/* パネル内容 */
 function showFontPanel() {
   panelTitle.textContent = "フォント";
   panelContent.innerHTML = `
@@ -573,7 +490,6 @@ function showFontPanel() {
       <option value="Yuji Syuku">Yuji Syuku</option>
     </select>
   `;
-
   const sel = document.getElementById("fontSelect");
   sel.value = currentFontFamily;
   sel.onchange = () => {
@@ -582,39 +498,37 @@ function showFontPanel() {
   };
 }
 
-  function showSizePanel() {
+function showSizePanel() {
   panelTitle.textContent = "フォントサイズ";
   panelContent.innerHTML = `
     <input id="sizeSlider" type="range" min="10" max="200" value="${currentFontSize}" style="width:100%;">
     <div style="text-align:center; margin-top:8px;">${currentFontSize}px</div>
   `;
-
   const slider = document.getElementById("sizeSlider");
   const label = panelContent.querySelector("div");
-
   slider.oninput = () => {
     currentFontSize = Number(slider.value);
     label.textContent = `${currentFontSize}px`;
     draw();
   };
 }
+
 function showPosPanel() {
   panelTitle.textContent = "キャプション位置";
   panelContent.innerHTML = `
     <input id="posSlider" type="range" min="-300" max="300" value="${currentOffsetY}" style="width:100%;">
     <div style="text-align:center; margin-top:8px;">${currentOffsetY}px</div>
   `;
-
   const slider = document.getElementById("posSlider");
   const label = panelContent.querySelector("div");
-
   slider.oninput = () => {
     currentOffsetY = Number(slider.value);
     label.textContent = `${currentOffsetY}px`;
     draw();
   };
 }
-  function showMarginPanel() {
+
+function showMarginPanel() {
   panelTitle.textContent = "余白設定";
   panelContent.innerHTML = `
     上左右余白（比率）
@@ -625,10 +539,8 @@ function showPosPanel() {
     <input id="bottomSlider" type="range" min="0" max="2000" step="10" value="${currentExtraBottom}" style="width:100%;">
     <div style="text-align:center; margin-top:8px;">${currentExtraBottom}px</div>
   `;
-
   const marginSlider = document.getElementById("marginSlider");
   const marginLabel = panelContent.querySelectorAll("div")[0];
-
   const bottomSlider = document.getElementById("bottomSlider");
   const bottomLabel = panelContent.querySelectorAll("div")[1];
 
@@ -637,50 +549,51 @@ function showPosPanel() {
     marginLabel.textContent = currentMarginRatio;
     draw();
   };
-
   bottomSlider.oninput = () => {
     currentExtraBottom = Number(bottomSlider.value);
     bottomLabel.textContent = `${currentExtraBottom}px`;
     draw();
   };
 }
-  function showColorPanel() {
+
+function showColorPanel() {
   panelTitle.textContent = "文字色";
   panelContent.innerHTML = `
     <input id="colorPicker" type="color" value="${currentFontColor}" style="width:100%; height:50px;">
   `;
-
   const picker = document.getElementById("colorPicker");
   picker.oninput = () => {
     currentFontColor = picker.value;
     draw();
   };
 }
+
 function showTextPanel() {
   panelTitle.textContent = "自由キャプション";
   panelContent.innerHTML = `
     <textarea id="freeText" rows="4" style="width:100%; font-size:16px;">${currentFreeText}</textarea>
   `;
-
   const ta = document.getElementById("freeText");
   ta.oninput = () => {
     currentFreeText = ta.value;
     draw();
   };
 }
-  /* ---------------------------------------
-   書き出し
---------------------------------------- */
-document.getElementById("exportBtn").onclick = async () => {
-  const finalCanvas = await renderFinalImage();
-  if (!finalCanvas) return;
 
-  finalCanvas.toBlob((blob) => {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "captioned.jpg";
-    a.click();
-  }, "image/jpeg", 0.95);
+/* ---------------------------------------
+   写真選択
+--------------------------------------- */
+document.getElementById("selectPhotoBtn").onclick = () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/jpeg,image/png";
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    currentExif = await readExif(file);
+    loadImageToCanvas(file);
+  };
+  input.click();
 };
 </script>
 
