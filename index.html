@@ -1430,11 +1430,12 @@ setStatus("画像を読み込んでください");
 /* ==========================
    画像未読み込み時のタップ → 読み込みダイアログ
 ========================== */
-document.body.addEventListener("click", () => {
+document.querySelector(".preview-wrapper").addEventListener("click", () => {
   if (state.items.length === 0) {
     fileInput.click();
   }
 });
+
 
 </script>
 </body>
