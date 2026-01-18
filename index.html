@@ -637,7 +637,13 @@ function buildCaptionLines(exif) {
 
   const iso = exif.ISO ? `ISO${exif.ISO}` : "ISO?";
 
-  const line1 = `${model}　LENS：${lens}`;
+  let line1 = "";
+if (lens && lens.trim() !== "") {
+  line1 = `${model}　LENS：${lens}`;
+} else {
+  line1 = `${model}`;  // または "" にして完全非表示も可
+}
+
   const line2 = `${dt}　　${ss}　${f}　${iso}`;
 
   return [line1, line2];
