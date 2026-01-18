@@ -1427,6 +1427,11 @@ function syncMobileFromState() {
 /* 初期状態 */
 syncMobileFromState();
 setStatus("画像を読み込んでください");
+document.getElementById("previewCanvas").addEventListener("click", () => {
+  if (state.items.length === 0) {
+    fileInput.click();
+  }
+});
 /* ==========================
    アプリ起動直後 → 読み込みダイアログ
 ========================== */
